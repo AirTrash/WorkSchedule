@@ -37,6 +37,7 @@ async def main():
         hour=9,
         minute=0
     )
+    scheduler.start()
     dp = Dispatcher()
     init_admin_filters(base_router, notify_router, schedule_router)
     dp.include_routers(base_router, notify_router, schedule_router)
