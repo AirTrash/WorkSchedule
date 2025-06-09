@@ -56,7 +56,7 @@ class Notifier:
         try:
             now = datetime.now()
             today = datetime.strptime(f"{now.day}.{now.month}.{now.year}", "%d.%m.%Y")
-            works = schedule_crud.get_date_works(today)
+            works = schedule_manage.get_date_works(today)
             await self.notify_all_chats(works)
         except Exception as e:
             await self.__notify_admin("Не удалось отправить уведомления для текущей даты, текст ошибки: " + str(e))
