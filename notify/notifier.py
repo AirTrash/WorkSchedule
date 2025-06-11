@@ -2,7 +2,8 @@ from pandas import Series
 
 import conf
 from .storage import BaseStorage, JSStorage
-import schedule_manage
+from schedule import schedule_manage
+from schedule import utils as schedule_utils
 from datetime import datetime
 
 
@@ -40,11 +41,7 @@ class Notifier:
         await self.bot.send_message(conf.ADMIN_ID, msg)
 
 
-    async def notify_all_chats(self, works: Series):
-        text = "На сегодняшний день:\n"
-        for user in works.index:
-            work = works[user] or "Отдых"
-            text += user + " - " + work + "\n"
+    async def __send_all_chats(self, text: str):
         for chat_id in self.data.get_chat_ids():
             try:
                 await self.bot.send_message(chat_id, text)
@@ -52,11 +49,18 @@ class Notifier:
                 await self.__notify_admin(f"Не удалось отправить оповещение в чат {chat_id}, текст ошибки: {e}")
 
 
+    async def weekly_notify(self):
+        text = schedule_utils.format_schedule(schedule_manage.SCHEDULE)
+        await self.__send_all_chats(text)
+
+
     async def notify(self):
         try:
             now = datetime.now()
             today = datetime.strptime(f"{now.day}.{now.month}.{now.year}", "%d.%m.%Y")
             works = schedule_manage.get_date_works(today)
-            await self.notify_all_chats(works)
+            text = "🗓" + schedule_utils.get_day(today) + ", " + today.strftime("%d.%m.%Y") + "\n"
+            text += schedule_utils.format_once(works)
+            await self.__send_all_chats(text)
         except Exception as e:
             await self.__notify_admin("Не удалось отправить уведомления для текущей даты, текст ошибки: " + str(e))

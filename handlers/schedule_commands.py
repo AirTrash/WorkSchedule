@@ -2,11 +2,11 @@ from typing import List
 
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram import F
 from aiogram.types import FSInputFile, Message
 
 import conf
-import schedule_manage
+from schedule import schedule_manage
+from schedule import utils as schedule_utils
 from filters.command import ArgParse, date_parser
 
 router = Router()
@@ -39,15 +39,12 @@ async def add_user(message: Message, args: List[str]):
 @router.message(Command("schedule"), ArgParse((date_parser, ), 0))
 async def schedule(message: Message, args: List):
     if len(args) == 0:
-        sched = schedule_manage.SCHEDULE.replace({None: "Отдых"})
+        sched = schedule_utils.format_schedule(schedule_manage.SCHEDULE)
         await message.reply("Текущее расписание:\n" + str(sched))
         return
     try:
-        text = ""
         works = schedule_manage.get_date_works(args[0])
-        for name in works.index:
-            work = works[name] or "отдых"
-            text += name + " - " + work + "\n"
+        text = schedule_utils.format_once(works)
         await message.reply(text)
     except Exception as e:
         await message.reply("Не удалось получить информацию за данную дату")

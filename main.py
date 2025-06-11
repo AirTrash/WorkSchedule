@@ -4,6 +4,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+import notify.notifier
 from handlers.schedule_commands import router as schedule_router
 from handlers.base_commands import router as base_router
 from handlers.notifier_commands import router as notify_router
@@ -26,18 +27,31 @@ def init_admin_filters(*routers):
         router.message.filter(AdminFilter(conf.ADMIN_ID))
 
 
-async def main():
-    bot = Bot(token=conf.TOKEN)
-    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-
+def schedule_notifies(bot: Bot):
     notifier = Notifier(bot, notifier_data)
+    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(
         notifier.notify,
         "cron",
         hour=9,
         minute=0
     )
+    scheduler.add_job(
+        notifier.weekly_notify,
+        "cron",
+        hour=9,
+        minute=0,
+        day_of_week=0
+    )
     scheduler.start()
+    return scheduler
+
+
+async def main():
+    bot = Bot(token=conf.TOKEN)
+
+    schedule_notifies(bot)
+
     dp = Dispatcher()
     init_admin_filters(base_router, notify_router, schedule_router)
     dp.include_routers(base_router, notify_router, schedule_router)

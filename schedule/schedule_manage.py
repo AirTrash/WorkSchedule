@@ -5,17 +5,14 @@ from datetime import datetime
 
 import conf
 
+from .utils import get_day
+
 
 SCHEDULE: pd.DataFrame
 
 
 def __save():
     SCHEDULE.to_csv(conf.SCHEDULE_PATH, date_format="%d.%m.%Y")
-
-
-def __get_day(date: datetime):
-    days = ("Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье")
-    return days[date.weekday()]
 
 
 def load():
@@ -27,7 +24,7 @@ def load():
 
     for date in SCHEDULE.index:
         if SCHEDULE.loc[date, "ден нед"] is None:
-            SCHEDULE.loc[date, "ден нед"] = __get_day(date)
+            SCHEDULE.loc[date, "ден нед"] = get_day(date)
     else:
         __save()
 
@@ -57,7 +54,7 @@ def del_user(name: str):
 
 
 def add_date(date: datetime):
-    SCHEDULE.loc[date] = [__get_day(date)] + [None for _ in range(len(SCHEDULE.columns.values) - 1)]
+    SCHEDULE.loc[date] = [get_day(date)] + [None for _ in range(len(SCHEDULE.columns.values) - 1)]
     SCHEDULE.sort_index(inplace=True)
     __save()
 
