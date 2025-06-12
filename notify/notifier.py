@@ -50,8 +50,14 @@ class Notifier:
 
 
     async def weekly_notify(self):
-        text = schedule_utils.format_schedule(schedule_manage.SCHEDULE)
-        await self.__send_all_chats(text)
+        try:
+            now = datetime.now()
+            today = datetime.strptime(f"{now.day}.{now.month}.{now.year}", "%d.%m.%Y")
+            works = schedule_manage.get_weekly(today)
+            text = schedule_utils.format_schedule(works)
+            await self.__send_all_chats(text)
+        except Exception as e:
+            await self.__notify_admin("Не удалось отправить еженедельное уведомление, текст ошибки: " + str(e))
 
 
     async def notify(self):

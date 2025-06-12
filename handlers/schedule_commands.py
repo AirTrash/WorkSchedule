@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime
 
 from aiogram import Router
 from aiogram.filters import Command
@@ -48,6 +49,18 @@ async def schedule(message: Message, args: List):
         await message.reply(text)
     except Exception as e:
         await message.reply("Не удалось получить информацию за данную дату")
+
+
+@router.message(Command("schedule_weekly"))
+async def schedule_weekly(message: Message):
+    now = datetime.now()
+    today = datetime.strptime(f"{now.day}.{now.month}.{now.year}", "%d.%m.%Y")
+    try:
+        works = schedule_manage.get_weekly(today)
+        text = schedule_utils.format_schedule(works)
+        await message.reply("Расписание на текущую неделю\n\n" + text)
+    except Exception as e:
+        await message.reply("Не удалось посмотреть расписание на текущую неделю, текст ошибки: " + str(e))
 
 
 @router.message(Command("add_date"), ArgParse((date_parser, )))

@@ -1,7 +1,7 @@
 import pandas as pd
 from numpy import nan
 from pandas import Series
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import conf
 
@@ -85,6 +85,27 @@ def del_user_work(date: datetime, user: str):
 
 def get_date_works(date: datetime) -> Series:
     return SCHEDULE.loc[date][1:]
+
+
+def get_weekly(date: datetime):
+    dates = SCHEDULE.index.to_list()
+    mon = date - timedelta(days=date.weekday())
+    try:
+        mon_idx = dates.index(mon)
+    except Exception as e:
+        raise ValueError(f"Для {date.strftime('%d.%m.%Y')} в таблице не найден ближайший понедельник")
+
+    last_idx = mon_idx
+    last_day = mon
+    one_day = timedelta(days=1)
+    for i in range(min(6, len(dates) - mon_idx)):
+        next_day = last_day + one_day
+        if next_day != dates[last_idx + 1]:
+            break
+        last_idx += 1
+        last_day += one_day
+
+    return SCHEDULE[mon_idx:last_idx+1]
 
 
 load()
